@@ -32,14 +32,31 @@ async function main(){
     trainBrain(network, split_data.training);
     console.log("Done Training");
 
-    console.log("\nRunning...");
-    console.log("Run 1:", network.run("Software Developer"));
-    console.log("Run 2:", network.run(["Software Developer"]));
-    console.log("Done Running");
 
-// Display the probability for "zero" and "one"
-    console.log(result);
+    console.log("\nTesting...");
+    result = testBrain(split_data.test);
+    console.log("Done Testing");
+    
+    console.log("Test Results:");
+    printObjList(result);
 
+}
+
+
+function testBrain(testData){
+    let testedData = [];
+    for (let data_point of testData){
+        let result = network.run(data_point["job-title"]);
+        testedData.push({
+            "id": data_point["id"], 
+            "job-title": data_point["job-title"], 
+            "title-rating": data_point["title-rating"], 
+            "brainjs-rating": result
+        });
+    }
+    return testedData;
+
+    
 }
 
 function trainBrain(network, training_list){
@@ -48,7 +65,7 @@ function trainBrain(network, training_list){
         let data_point = { input: item["job-title"], output: [parseInt(item["title-rating"])] };
         training_data.push(data_point);
     }
-    console.log(util.inspect(training_data, { depth: null }));
+    //console.log(util.inspect(training_data, { depth: null }));
 
     network.train(training_data);
     return network;
