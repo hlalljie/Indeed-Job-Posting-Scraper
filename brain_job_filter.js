@@ -10,7 +10,8 @@ async function main(){
     console.log("Rating Jobs");
 
     input_path = "titles_and_ratings-indeed_remote_entry-level_python_bachelors-10_1_23.csv";
-    output_path = "rated_test_output.csv";
+    //output_path = "test_output.csv";
+    output_path = "large_title_test_2.csv";
     
     //printObjList(all_data);
     console.log("\nReading Dataset from CSV...");
@@ -33,7 +34,7 @@ async function main(){
     //console.log("Test Data:")
     //printObjList(split_data.test);
 
-    let network = new brain.recurrent.LSTM();   
+    let network = new brain.recurrent.LSTM();
 
     
     console.log("Training...");
@@ -88,10 +89,10 @@ function writeDataToCSV(itemsArray, output_path){
           "brainjs-rating",
         ],
         ...itemsArray.map(item => [
-          item["id"].toString(),
-          item["job-title"].toString(),
-          item["title-rating"].toString(),
-          item["brainjs-rating"].toString()
+          item["id"],
+          '"' + item["job-title"].toString() + '"',
+          item["title-rating"],
+          item["brainjs-rating"]
         ])
     ]
     .map(e => e.join(","))
@@ -198,16 +199,16 @@ function printObjList(list){
 
 function getTestSet(){
     return [
-        { "id": '5590e192f01ef4a8', 'job-title': "Remote Children's Technology Teacher - Coding", 'title-rating': '7'},
-        { "id": '24f625c9d9e47413', 'job-title': 'Software Engineer', 'title-rating': '8'},
-        { "id": '5449dcd71aab9d2b', 'job-title': 'Sports-Focused Accelerometer/IMU Algorithm Developer', 'title-rating': '6' },
-        { "id": '2a2d575a699b463e', 'job-title': 'Other Linux Engineering Team Opportunities', 'title-rating': '4'},
-        { "id": '8f5611b46d25b3a', 'job-title': 'Director of Informatics', 'title-rating': '1' },
-        { "id": 'ad354720dc2e13a6', 'job-title': 'Software Engineer', 'title-rating': '8' },
-        { "id": '60cbbc1cbbb76376', 'job-title': 'Software Developer', 'title-rating': '8' },
-        { "id": 'e53c56120a0f127d', 'job-title': 'Data science Training', 'title-rating': '8' },
-        { "id": 'b4f0e295972c4dcb', 'job-title': 'Data Engineer - Python', 'title-rating': '8' },
-        { "id": '0d491e219ae37894', "job-title": 'Graduate BIM and Computational Designer, Summer 2024', "title-rating": '7'}
+        { "id": '5590e192f01ef4a8', 'job-title': "Remote Children's Technology Teacher - Coding", 'title-rating': 7},
+        { "id": '24f625c9d9e47413', 'job-title': 'Software Engineer', 'title-rating': 8},
+        { "id": '5449dcd71aab9d2b', 'job-title': 'Sports-Focused Accelerometer/IMU Algorithm Developer', 'title-rating': 6 },
+        { "id": '2a2d575a699b463e', 'job-title': 'Other Linux Engineering Team Opportunities', 'title-rating': 4},
+        { "id": '8f5611b46d25b3a', 'job-title': 'Director of Informatics', 'title-rating': 1 },
+        { "id": 'ad354720dc2e13a6', 'job-title': 'Software Engineer', 'title-rating': 8 },
+        { "id": '60cbbc1cbbb76376', 'job-title': 'Software Developer', 'title-rating': 8 },
+        { "id": 'e53c56120a0f127d', 'job-title': 'Data science Training', 'title-rating': 8 },
+        { "id": 'b4f0e295972c4dcb', 'job-title': 'Data Engineer - Python', 'title-rating': 8 },
+        { "id": '0d491e219ae37894', "job-title": 'Graduate BIM and Computational Designer, Summer 2024', "title-rating": 7}
     ];
 }
 
@@ -223,6 +224,7 @@ function getOldDataSet(){
         {"id": '95e978ac4a9ac721', "job-title": 'Systems Administrator', "title-rating": '6', "brainjs-rating": '7'},
         {"id": 'e1c0e2bf0c6e69ea', "job-title": 'Prompt engineer', "title-rating": '8', "brainjs-rating": '7'},
         {"id": 'd7b494f7a1fbb2fd', "job-title": 'Actuarial Developer', "title-rating": '4', "brainjs-rating": '7'},
+        {"id": '560cbf5def8c5f69',"job-title": 'Jr. Software Development Engineer',  "title-rating": '9', "brainjs-rating": '9'},
         {"id": 'be9b35ec254532e8', "job-title": 'Space Lasers Engineer (Starlink)', "title-rating": '6', "brainjs-rating": '7'},
         {"id": '59f907be08bf5bc1', "job-title": 'iPhone Data Analysis Engineer', "title-rating": '6', "brainjs-rating": '7'},
         {"id": '65004bac7047de3', "job-title": 'Cloud Engineer', "title-rating": '7', "brainjs-rating": '7'},
@@ -259,10 +261,14 @@ function getOldDataSet(){
     ]
 }
 
+function cleanData(){
+    //function off the main loop to control one-off data cleaning operations
+    let dataSet = getOldDataSet();
+    writeDataToCSV(dataSet, "change-this")
 
-
-
-
+    console.log(dataSet);
+}
 
 
 main();
+//cleanData();
