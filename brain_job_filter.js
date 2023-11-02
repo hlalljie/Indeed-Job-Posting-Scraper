@@ -11,18 +11,19 @@ async function main(){
     var start = Date.now();
     console.log("Rating Jobs");
 
-    input_path = "/Users/hayden/PycharmProjects/Indeed Job Posting Scraper/titles_and_ratings-indeed_remote_entry-level_python_bachelors-10_1_23.csv";
-    let all_data = await read_data_from_csv(input_path);
+    input_path = "titles_and_ratings-indeed_remote_entry-level_python_bachelors-10_1_23.csv";
+    output_path = "rated_test_output.csv";
+    
     //printObjList(all_data);
     console.log("\nReading Dataset from CSV...");
-    testSet = getTestSet();
-    console.log("Dataset Read. Dataset size:", testSet.length)
+    //let all_data = getTestSet();
+    let all_data = await read_data_from_csv(input_path);
+    console.log("Dataset Read. Dataset size:", all_data.length)
     //console.log("List Before:");
     //printObjList(testSet);
 
     console.log("\nRandomizing Dataset...");
-    //let randomized_list = randomizeList([...all_data]);
-    let randomized_list = randomizeList([...testSet]);
+    let randomized_list = randomizeList([...all_data]);
     console.log("Dataset Randomized");
     //printObjList(randomized_list);
 
@@ -35,19 +36,24 @@ async function main(){
     //printObjList(split_data.test);
 
     let network = new brain.recurrent.LSTM();   
-    /*
+
+    
     console.log("Training...");
     trainBrain(network, split_data.training);
-    console.log("Done Training");
+    console.log("Training Complete");
 
 
     console.log("\nTesting...");
     result = testBrain(network, split_data.test);
-    console.log("Done Testing");
+    console.log("Testing Complete.");
     
     console.log("Test Results:");
     printObjList(result);
-    */
+    
+
+    console.log("\nWriting Reslts to CSV...");
+    writeDataToCSV(result, output_path);
+    console.log("Results Recorded to", output_path);
     
     var end= Date.now();
     let elapsedTime = Math.floor((end-start)/1000);
@@ -63,16 +69,44 @@ function formatTime(time){
     let minutes = 0;
     let second = 0;
     if (time >= 3600){
-        timeStr += Math.floor(time / 3600).toString() + "hours, ";
+        timeStr += Math.floor(time / 3600).toString() + " hours, ";
         time = time % 3600;
     }
     if (time >= 60){
-        timeStr += Math.floor(time / 60).toString() + "minutes, ";
+        timeStr += Math.floor(time / 60).toString() + " minutes, ";
         time = time % 60;
     }
     timeStr += time.toString() + " seconds";
     
     return timeStr;
+}
+
+function writeDataToCSV(itemsArray, output_path){
+    let csvString = [
+        [
+          "id",
+          "job-title",
+          "title-rating",
+          //"brainjs-rating",
+        ],
+        ...itemsArray.map(item => [
+          item["id"],
+          item["job-title"],
+          item["title-rating"],
+          //item["brainjs-rating"]
+        ])
+    ]
+    .map(e => e.join(","))
+    .join("\n");
+
+    //console.log(csvString);
+    try {
+        fs.writeFileSync(output_path, csvString);
+        // file written successfully
+      } catch (err) {
+        console.error(err);
+      }
+
 }
 
 function testBrain(network, testData){
