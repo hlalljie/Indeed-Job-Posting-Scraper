@@ -8,42 +8,74 @@ const brain = require('brain.js');
 
 
 async function main(){
+    var start = Date.now();
+    console.log("Rating Jobs");
+
     input_path = "/Users/hayden/PycharmProjects/Indeed Job Posting Scraper/titles_and_ratings-indeed_remote_entry-level_python_bachelors-10_1_23.csv";
     let all_data = await read_data_from_csv(input_path);
     //printObjList(all_data);
-
-    testSet= getTestSet();
+    console.log("\nReading Dataset from CSV...");
+    testSet = getTestSet();
+    console.log("Dataset Read. Dataset size:", testSet.length)
     //console.log("List Before:");
     //printObjList(testSet);
+
+    console.log("\nRandomizing Dataset...");
     //let randomized_list = randomizeList([...all_data]);
     let randomized_list = randomizeList([...testSet]);
-    //console.log("\nList Randomized:");
+    console.log("Dataset Randomized");
     //printObjList(randomized_list);
 
+    console.log("\nSpliting Dataset into Training and Test Sets...");
     let split_data = splitTrainingAndTestData(randomized_list, .8);
-    console.log("Training Data:")
-    printObjList(split_data.training);
-    console.log("Test Data:")
-    printObjList(split_data.test);
+    console.log("Dataset split.", split_data.training.length, "Training Datapoints.", split_data.test.length, "Test Datapoints.");
+    //console.log("Training Data:")
+    //printObjList(split_data.training);
+    //console.log("Test Data:")
+    //printObjList(split_data.test);
 
     let network = new brain.recurrent.LSTM();   
-    
+    /*
     console.log("Training...");
     trainBrain(network, split_data.training);
     console.log("Done Training");
 
 
     console.log("\nTesting...");
-    result = testBrain(split_data.test);
+    result = testBrain(network, split_data.test);
     console.log("Done Testing");
     
     console.log("Test Results:");
     printObjList(result);
+    */
+    
+    var end= Date.now();
+    let elapsedTime = Math.floor((end-start)/1000);
+    
+    console.log("\nExecution time:", formatTime(elapsedTime));
 
 }
 
 
-function testBrain(testData){
+function formatTime(time){
+    let timeStr = "";
+    let hours = 0;
+    let minutes = 0;
+    let second = 0;
+    if (time >= 3600){
+        timeStr += Math.floor(time / 3600).toString() + "hours, ";
+        time = time % 3600;
+    }
+    if (time >= 60){
+        timeStr += Math.floor(time / 60).toString() + "minutes, ";
+        time = time % 60;
+    }
+    timeStr += time.toString() + " seconds";
+    
+    return timeStr;
+}
+
+function testBrain(network, testData){
     let testedData = [];
     for (let data_point of testData){
         let result = network.run(data_point["job-title"]);
@@ -75,12 +107,10 @@ function trainBrain(network, training_list){
 function splitTrainingAndTestData(data, training_ratio){
     
     let split_data = {};
-    console.log(data.length);
 
     let training_size = Math.floor(data.length * training_ratio)
     let test_size = data.length - training_size;
 
-    console.log("Training size:", training_size, "Test size:", test_size);
     split_data["training"] = data.slice(0, training_size);
     split_data["test"] = data.slice(training_size);
 
