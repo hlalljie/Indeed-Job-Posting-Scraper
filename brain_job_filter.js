@@ -2,6 +2,9 @@ const fs = require('fs');
 const csv = require('csv-parser');
 const util = require('util');
 const { default: test } = require('node:test');
+const brain = require('brain.js');
+
+
 
 
 async function main(){
@@ -9,10 +12,11 @@ async function main(){
     let all_data = await read_data_from_csv(input_path);
     //printObjList(all_data);
 
-    //testSet= getTestSet();  
+    testSet= getTestSet();
     //console.log("List Before:");
-    //printObjList(test_list);
-    let randomized_list = randomizeList([...all_data]);
+    //printObjList(testSet);
+    //let randomized_list = randomizeList([...all_data]);
+    let randomized_list = randomizeList([...testSet]);
     //console.log("\nList Randomized:");
     //printObjList(randomized_list);
 
@@ -21,6 +25,33 @@ async function main(){
     printObjList(split_data.training);
     console.log("Test Data:")
     printObjList(split_data.test);
+
+    let network = new brain.recurrent.LSTM();   
+    
+    console.log("Training...");
+    trainBrain(network, split_data.training);
+    console.log("Done Training");
+
+    console.log("\nRunning...");
+    console.log("Run 1:", network.run("Software Developer"));
+    console.log("Run 2:", network.run(["Software Developer"]));
+    console.log("Done Running");
+
+// Display the probability for "zero" and "one"
+    console.log(result);
+
+}
+
+function trainBrain(network, training_list){
+    let training_data = [];
+    for (item of training_list){
+        let data_point = { input: item["job-title"], output: [parseInt(item["title-rating"])] };
+        training_data.push(data_point);
+    }
+    console.log(util.inspect(training_data, { depth: null }));
+
+    network.train(training_data);
+    return network;
 }
 
 //Training ratio between 0 and 1
