@@ -8,10 +8,11 @@ const brain = require('brain.js');
 async function main(){
     var start = Date.now();
     console.log("Rating Jobs");
+    console.log("Started at", start)
 
     input_path = "titles_and_ratings-indeed_remote_entry-level_python_bachelors-10_1_23.csv";
     //output_path = "test_output.csv";
-    output_path = "large_title_test_2.csv";
+    output_path = "large_title_test_4.csv";
     
     //printObjList(all_data);
     console.log("\nReading Dataset from CSV...");
@@ -37,7 +38,7 @@ async function main(){
     let network = new brain.recurrent.LSTM();
 
     
-    console.log("Training...");
+    console.log("\nTraining...");
     trainBrain(network, split_data.training);
     console.log("Training Complete");
 
