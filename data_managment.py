@@ -7,46 +7,104 @@ import numpy as np
 
 
 def main():
-    input_file = "Output/large_title_test_1.csv"
-    output_file = "test.csv"
+    # Set input and output individual sheet operation (right now just finding the diff between data)
+    individual_input_files = [
+        "Output/large_title_test_1.csv",
+        "Output/large_title_test_2.csv",
+        "Output/large_title_test_3.csv",
+        "Output/large_title_test_4.csv",
+        "Output/large_title_test_5.csv"
+    ]
+    individual_output_files = [
+        "Final/large_title_test_1_final.csv",
+        "Final/large_title_test_2_final.csv",
+        "Final/large_title_test_3_final.csv",
+        "Final/large_title_test_4_final.csv",
+        "Final/large_title_test_5_final.csv"
+    ]
+    title = "Title Test"
+    if len(individual_input_files) != len(individual_output_files):
+        print("Input and output file lists must be the same length")
+        return
+    all_stats_file = "Final/large_title_test_stats.csv"
 
-    df = pd.read_csv(input_file)
+    all_stats = []
 
-    data_list = df.to_dict(orient="records")
-    findRatingDiff(data_list)
+    for i in range(len(individual_input_files)):
+        # Read from csv
+        df = pd.read_csv(individual_input_files[i])
 
-    findListPropAndStats(df)
+        # Update data_list with difference between Brain.js rating and my rating
+        data_list = df.to_dict(orient="records")
+        findRatingDiff(data_list)
+
+        # Create dataframe from the dictionary and write to csv
+        df = pd.DataFrame(data_list)
+        df.to_csv(individual_output_files[i], index=False)
+
+        # Find statistics for the test and add them to the all stats dict
+        new_stats = findListPropAndStats(df, "Title Test " + str(i+1))
+        all_stats.append(new_stats)
+
+    # Write all stats
+    all_stats_df = pd.DataFrame(all_stats)
+    all_stats_df.to_csv(all_stats_file, index=False)
+    #print(all_stats_df)
 
 
-    #print_array(data_list)
+# returns dictionary so dataframe doesn't need to be initialized with column names
+def findListPropAndStats(df, test_title, iqr_radius=.25):
 
-
-
-def findListPropAndStats(df):
+    #Allow for printing all rows and columns for debugging
     pd.set_option('display.max_rows', None)
     pd.set_option('display.max_columns', None)
+
+    pre_filter_size = df['brainjs-rating'].size
     # Drop rows with NaN values in the "brainjs-rating" column (non-numeric values)
     df['brainjs-rating'] = df['brainjs-rating'].apply(junk_filter)
-
     # Create a mask to identify rows with NaN in the "brainjs-rating" column
     mask = np.isnan(df['brainjs-rating'])
     # Apply the mask to the DataFrame to retain rows with valid "brainjs-rating" values
     df = df[~mask]
+    junk = pre_filter_size - df['brainjs-rating'].size
+
+    # Calculate IQR quantiles based on given range
+    q_index_1 = .5 - iqr_radius
+    q_index_3 = .5 + iqr_radius
+
     if not df.empty:
-        statistics_df = pd.DataFrame({
-            'Mean Rating': [df['title-rating'].mean()],
-            'BrainJS Mean Rating': [df['brainjs-rating'].mean()],
-            'Median Rating': [df['title-rating'].median()],
-            'BrainJS Median Rating': [df['brainjs-rating'].median()],
-            'Rating IQR': [df['title-rating'].quantile(0.75) - df['title-rating'].quantile(0.25)],
-            'BrainJS IQR': [df['brainjs-rating'].quantile(0.75) - df['brainjs-rating'].quantile(0.25)],
-            'Rating Standard Deviation': [df['title-rating'].std()],
-            'BrainJS Standard Deviation': [df['brainjs-rating'].std()]
-        })
+        statistics_df = {
+            'Test Title': test_title,
+            'Mean Rating': df['title-rating'].mean(),
+            'BrainJS Mean Rating': df['brainjs-rating'].mean(),
+            'Median Rating': df['title-rating'].median(),
+            'BrainJS Median Rating': df['brainjs-rating'].median(),
+            'Rating IQR': df['title-rating'].quantile(q_index_3) - df['title-rating'].quantile(q_index_1),
+            'BrainJS IQR': df['brainjs-rating'].quantile(q_index_3) - df['brainjs-rating'].quantile(q_index_1),
+            'Rating Outliers': countOutliers(df, "title-rating", q_index_1, q_index_3),
+            'BrainJS Outliers': countOutliers(df, "brainjs-rating", q_index_1, q_index_3),
+            'Rating Standard Deviation': df['title-rating'].std(),
+            'BrainJS Standard Deviation': df['brainjs-rating'].std(),
+            'Mean Rating Difference': df['rating-diff'].mean(),
+            'Median Rating Difference': df['rating-diff'].median(),
+            'Correct Guesses': df['rating-diff'].value_counts().get(0,0),
+            'BrainJS Junk Count': junk
+        }
     else:
         # Handle the case where there's no valid data
-        statistics_df = pd.DataFrame()
-    print(statistics_df)
+        statistics_df = {}
+    return statistics_df
+
+def countOutliers(df, prop, q_index_1=.25, q_index_3=.75, bound_radius=1.5):
+    Q1 = df[prop].quantile(q_index_1)
+    Q3 = df[prop].quantile(q_index_3)
+    IQR = Q3 - Q1
+    # Define the lower and upper bounds for outliers
+    lower_bound = Q1 - bound_radius * IQR
+    upper_bound = Q3 + bound_radius * IQR
+
+    outliers = df[(df[prop] < lower_bound) | (df[prop] > upper_bound)]
+    return len(outliers)
 
 def junk_filter(value):
     try:
@@ -54,72 +112,7 @@ def junk_filter(value):
     except (ValueError, TypeError):
         return None
 
-    '''title_ratings = [item["title-rating"] for item in data_list]
-    brainjs_ratings = [item["brainjs-rating"] for item in data_list]
-    rating_diffs = [item["rating-diff"] for item in data_list]
 
-    mean_title_rating = findMean(title_ratings)
-    mean_brainjs_rating = findMean(brainjs_ratings)
-    mean_rating_diff = findMean(rating_diffs)
-    print("Mean rating:", mean_title_rating, ", Brainjs Mean: ", mean_brainjs_rating, ", Mean Difference:", mean_rating_diff)
-
-    median_title_rating = findMedian(title_ratings)
-    median_brainjs_rating = findMedian(brainjs_ratings)
-    median_rating_diff = findMedian(rating_diffs)
-    print("Median rating:", median_title_rating[0], ", Brainjs Median: ", median_brainjs_rating[0], ", Median Difference:", median_rating_diff[0])
-
-    #title_rating_iqr = findIQR(data_list, "title-rating", median_title_rating)
-    #print("")
-def findIQR(data_list, prop, median=None):
-    # trim junk data
-    clean_data = []
-    for data in data_list:
-        try:
-            clean_data.append(int(data[prop]))
-        except:
-            pass
-    sorted_data = sorted(clean_data)
-
-    if median == None:
-        median = findMedian(sorted_data, prop)
-    #return IQR
-    #check if index is whole number
-    if int(median[1]) == median[1]:
-        return findMedian(sorted_data[int(median[1])+1:], prop)[0] - findMedian(sorted_data[:int(median[1])], prop)[0]
-    else:
-        print(sorted_data[int(median[1]) + 1:])
-        return findMedian(sorted_data[int(median[1]) + 1:], prop)[0] - findMedian(sorted_data[:int(median[1])+1], prop)[0]
-
-
-
-
-
-# return the median and the median index of a list
-def findMedian(data_list):
-    #trim junk data
-    clean_data = []
-    for data in data_list:
-        try:
-            clean_data.append(int(data))
-        except:
-            pass
-    sorted_data = sorted(clean_data)
-    if len(sorted_data) % 2 == 0:
-        return [(sorted_data[len(sorted_data)//2 - 1] + sorted_data[len(sorted_data)//2])/2, len(sorted_data)//2 - .5]
-    return [sorted_data[len(sorted_data)//2 - 1]][len(sorted_data)//2 - 1]
-
-
-def findMean(data_list):
-    count = len(data_list)
-    data_sum = 0
-    for data in data_list:
-        try:
-            data_sum += int(data)
-        except:
-            count -= 1
-    return data_sum/count
-
-'''
 def findRatingDiff(data_list):
     for data in data_list:
         try:
