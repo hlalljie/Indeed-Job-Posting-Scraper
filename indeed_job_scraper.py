@@ -16,7 +16,7 @@ def main():
     start_time = datetime.now()
     print("Running Start at", start_time.strftime("%d-%m-%Y %H:%M:%S"))
 
-    # List of the first pages of jobs where the bot will search through
+    # List of the first pages of jobs where the bot will search through, list the urls below as strings
     url_root_list = [
         "https://www.indeed.com/jobs?q=python&l=United+States&sc=0kf%3Aattr%28DSQF7%29attr%28FCGTU%7CHFDVW%7CQJZM9%7CUTPWG%252COR%29attr%28X62BT%29explvl%28ENTRY_LEVEL%29%3B&vjk=60cbbc1cbbb76376",
         "https://www.indeed.com/jobs?q=python&l=Oregon&sc=0kf%3Aattr%28FCGTU%7CHFDVW%7CQJZM9%7CUTPWG%252COR%29explvl%28ENTRY_LEVEL%29%3B&vjk=560cbf5def8c5f69",
@@ -25,13 +25,15 @@ def main():
         "https://www.indeed.com/jobs?q=python&l=Los+Angeles%2C+CA&sc=0kf%3Aattr%28FCGTU%7CHFDVW%7CQJZM9%7CUTPWG%252COR%29explvl%28ENTRY_LEVEL%29%3B&rbl=Los+Angeles%2C+CA&jlid=d05a4fe50c5af0a8&vjk=753cc774e407931f"
     ]
 
+    # Specify your output file path, CONTENTS WILL BE OVERWRITTEN or new file will be created
+    output_path = "new_props_test.csv"
 
+    # Specify the limit on how many posts to look through FOR EACH URL ROOT (so if you have 4 url roots you can potentially be loking through 4000 postings)
     RUN_LIMIT = 1000
     all_jobs_arr = []
     for url_root in url_root_list:
         find_all_jobs_for_search(url_root, all_jobs_arr, RUN_LIMIT)
 
-    output_path = "new_props_test.csv"
     record_jobs_in_file(output_path, all_jobs_arr)
 
     completion_time = datetime.now()
