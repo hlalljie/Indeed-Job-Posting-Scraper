@@ -12,9 +12,11 @@ import pandas as pd
 
 
 def main():
+    #Timers
     start_time = datetime.now()
     print("Running Start at", start_time.strftime("%d-%m-%Y %H:%M:%S"))
 
+    # List of the first pages of jobs where the bot will search through
     url_root_list = [
         "https://www.indeed.com/jobs?q=python&l=United+States&sc=0kf%3Aattr%28DSQF7%29attr%28FCGTU%7CHFDVW%7CQJZM9%7CUTPWG%252COR%29attr%28X62BT%29explvl%28ENTRY_LEVEL%29%3B&vjk=60cbbc1cbbb76376",
         "https://www.indeed.com/jobs?q=python&l=Oregon&sc=0kf%3Aattr%28FCGTU%7CHFDVW%7CQJZM9%7CUTPWG%252COR%29explvl%28ENTRY_LEVEL%29%3B&vjk=560cbf5def8c5f69",
@@ -23,8 +25,6 @@ def main():
         "https://www.indeed.com/jobs?q=python&l=Los+Angeles%2C+CA&sc=0kf%3Aattr%28FCGTU%7CHFDVW%7CQJZM9%7CUTPWG%252COR%29explvl%28ENTRY_LEVEL%29%3B&rbl=Los+Angeles%2C+CA&jlid=d05a4fe50c5af0a8&vjk=753cc774e407931f"
     ]
 
-    #single url test
-    #url_root_list = ["https://www.indeed.com/jobs?q=python&l=San+Francisco+Bay+Area%2C+CA&sc=0kf%3Aattr%28FCGTU%7CHFDVW%7CQJZM9%7CUTPWG%252COR%29attr%28X62BT%29explvl%28ENTRY_LEVEL%29%3B&vjk=ecd4f2fe53a63fc0"]
 
     RUN_LIMIT = 1000
     all_jobs_arr = []
